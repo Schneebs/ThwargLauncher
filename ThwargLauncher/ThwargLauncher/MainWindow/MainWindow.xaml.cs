@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -297,6 +297,7 @@ namespace ThwargLauncher
             }
             // Ensure all data folders shared with filter exist
             ThwargFilter.FileLocations.EnsureAllDataFoldersExist();
+            GameLaunching.GameDatPaths.EnsureAppSubfolderRootsExist();
 
             // Ensure profiles folder exists
             var mgr = new ProfileManager();
@@ -550,7 +551,9 @@ namespace ThwargLauncher
                                 CustomLaunchPath = server.HasCustomLaunchPath ? server.CustomLaunchPath : account.CustomLaunchPath,
                                 CustomPreferencePath = account.CustomPreferencePath,
                                 RodatSetting = server.RodatSetting,
-                                SecureSetting = server.SecureSetting
+                                SecureSetting = server.SecureSetting,
+                                ServerId = server.ServerId,
+                                DatCacheFolderOverride = string.IsNullOrWhiteSpace(server.DatCacheFolderOverride) ? null : server.DatCacheFolderOverride.Trim()
                             };
                             launchList.Add(launchItem);
                         }

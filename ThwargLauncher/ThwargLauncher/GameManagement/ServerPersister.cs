@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -29,6 +29,7 @@ namespace ThwargLauncher.GameManagement
             public string DiscordUrl;
             public string WebsiteUrl;
             public string CustomLaunchPath;
+            public string DatCacheFolderOverride;
             public ServerModel.ServerEmuEnum EMU;
             public ServerModel.RodatEnum RodatSetting;
             public ServerModel.SecureEnum SecureSetting;
@@ -94,7 +95,8 @@ namespace ThwargLauncher.GameManagement
                             new XElement("default_rodat", server.RodatSetting),
                             new XElement("default_secure", server.SecureSetting),
                             new XElement("visibility", server.VisibilitySetting),
-                            new XElement("custom_launch_path", server.CustomLaunchPath)
+                            new XElement("custom_launch_path", server.CustomLaunchPath ?? ""),
+                            new XElement("dat_cache_folder_override", server.DatCacheFolderOverride ?? "")
                             );
             return xelem;
         }
@@ -151,6 +153,11 @@ namespace ThwargLauncher.GameManagement
                             string visibilitystr = GetOptionalSubvalue(node, "visibility", "Visible");
                             si.VisibilitySetting = ParseVisibility(visibilitystr, defval: ServerModel.VisibilityEnum.Visible);
                             si.CustomLaunchPath = GetOptionalSubvalue(node, "custom_launch_path", null);
+                            si.DatCacheFolderOverride = GetOptionalSubvalue(node, "dat_cache_folder_override", null);
+                            if (string.IsNullOrWhiteSpace(si.DatCacheFolderOverride))
+                            {
+                                si.DatCacheFolderOverride = null;
+                            }
                             list.Add(si);
                         }
                     }

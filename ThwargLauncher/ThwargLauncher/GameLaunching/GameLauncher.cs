@@ -1,16 +1,18 @@
-﻿using System;
+using System;
 using System.Configuration;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using ThwargFilter;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
-using RestSharp;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using ThwargLauncher.AccountManagement;
+using ThwargLauncher.GameLaunching;
 using ThwargLauncher.GlobalResources;
 
 namespace ThwargLauncher
@@ -59,7 +61,8 @@ namespace ThwargLauncher
             string serverName, string accountName, string password,
             string ipAddress,string gameApiUrl, string loginServerUrl, string discordurl,
             ServerModel.ServerEmuEnum emu, string desiredCharacter,
-            ServerModel.RodatEnum rodatSetting, ServerModel.SecureEnum secureSetting, bool simpleLaunch)
+            ServerModel.RodatEnum rodatSetting, ServerModel.SecureEnum secureSetting, bool simpleLaunch,
+            GameDatPersistContext datPersistContext = null)
         {
             var result = new GameLaunchResult();
             //-username "MyUsername" -password "MyPassword" -w "ServerName" -2 -3
@@ -159,6 +162,7 @@ namespace ThwargLauncher
                 Logger.WriteInfo(string.Format("PID = {0}", launcherProc.Id));
                 // record process id of the process we just launched, which hopefully will be the game process
                 result.ProcessId = launcherProc.Id;
+                GameDatPersistRegistry.Register(launcherProc.Id, datPersistContext);
                 launcherProc.EnableRaisingEvents = true;
                 launcherProc.Exited += LauncherProc_Exited;
                 if (!gameReady)
@@ -281,30 +285,35 @@ namespace ThwargLauncher
         private SubscriptionListInfo GetSubscriptionsForAccount(string accountName, string password, string ipAddress, string gameApi)
         {
             SubscriptionListInfo info = new SubscriptionListInfo();
-
-            RestClient authClient = new RestClient(ipAddress);
-            var authRequest = new RestRequest("/Account/Authenticate", Method.POST);
-            authRequest.AddJsonBody(new { Username = accountName, Password = password });
-            var authResponse = authClient.Execute(authRequest);
-            if (authResponse.StatusCode != System.Net.HttpStatusCode.OK)
+            using (var http = new HttpClient())
             {
-                throw new Exception("Authentication Failed, no auth token.");
+                string authBase = ipAddress.TrimEnd('/');
+                string authUrl = authBase + "/Account/Authenticate";
+                string authPayload = JsonConvert.SerializeObject(new { Username = accountName, Password = password });
+                var authContent = new StringContent(authPayload, Encoding.UTF8, "application/json");
+                var authResponse = http.PostAsync(authUrl, authContent).GetAwaiter().GetResult();
+                string authBody = authResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                if (authResponse.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new Exception("Authentication Failed, no auth token.");
+                }
+                JObject response = JObject.Parse(authBody);
+                info.AuthToken = (string)response.SelectToken("authToken");
+
+                string gameApiBase = gameApi.TrimEnd('/');
+                string subsUrl = gameApiBase + "/Subscription/Get";
+                using (var subsRequest = new HttpRequestMessage(HttpMethod.Get, subsUrl))
+                {
+                    subsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", info.AuthToken);
+                    var subsResponse = http.SendAsync(subsRequest).GetAwaiter().GetResult();
+                    string subsBody = subsResponse.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    if (subsResponse.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        throw new Exception("HttpStatusCode from subscription call not OK.");
+                    }
+                    info.Subscriptions = JsonConvert.DeserializeObject<List<Subscription>>(subsBody);
+                }
             }
-            JObject response = JObject.Parse(authResponse.Content);
-            info.AuthToken = (string)response.SelectToken("authToken");
-
-            RestClient subClient = new RestClient(gameApi);
-            var subsRequest = new RestRequest("/Subscription/Get", Method.GET);
-            subsRequest.AddHeader("Authorization", "Bearer " + info.AuthToken);
-            var subsResponse = subClient.Execute(subsRequest);
-
-            if (subsResponse.StatusCode != System.Net.HttpStatusCode.OK)
-            {
-                // show the error
-                throw new Exception("HttpStatusCode from subscription call not OK.");
-            }
-
-            info.Subscriptions = JsonConvert.DeserializeObject<List<Subscription>>(subsResponse.Content);
             return info;
         }
 
@@ -329,6 +338,7 @@ namespace ThwargLauncher
         private void LauncherProc_Exited(object sender, EventArgs e)
         {
             Process p = (Process)sender;
+            GameDatPersistRegistry.OnProcessExited(p.Id);
             AppCoordinator.RemoveObsoleteProcess(p.Id);
         }
 

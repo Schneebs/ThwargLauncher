@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -66,9 +66,6 @@
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RestSharp.105.2.3\lib\net45\RestSharp.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
@@ -79,14 +76,11 @@
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="ThwargFilter, Version=5.4.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\ThwargFilter.dll</HintPath>
     </Reference>
     <Reference Include="VCS5">
       <HintPath>..\..\..\..\..\Games\VirindiPlugins\VirindiChatSystem5\VCS5.dll</HintPath>
@@ -178,6 +172,11 @@
     <Compile Include="UtilityCode\ConfigSettings.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="UtilityCode\DelegateCommand.cs" />
+    <Compile Include="GameLaunching\ClientShadowHydrator.cs" />
+    <Compile Include="GameLaunching\DatFileSync.cs" />
+    <Compile Include="GameLaunching\GameDatLaunchPreparer.cs" />
+    <Compile Include="GameLaunching\GameDatPaths.cs" />
+    <Compile Include="GameLaunching\GameDatPersistRegistry.cs" />
     <Compile Include="GameLaunching\GameLauncher.cs" />
     <Compile Include="UtilityCode\ExpressionExtensions.cs" />
     <Compile Include="UtilityCode\getOS.cs" />
@@ -367,6 +366,10 @@
     <Folder Include="UtilityCode\DecalInjection\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ThwargFilter\ThwargFilter.csproj">
+      <Project>{357beb06-5599-4e29-a147-309ee255c10a}</Project>
+      <Name>ThwargFilter</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SubProjects\Intelli.WPF.Controls\Intelli.WPF.Controls.csproj">
       <Project>{769d993c-2867-4212-be80-b70e4862ebc5}</Project>
       <Name>Intelli.WPF.Controls</Name>

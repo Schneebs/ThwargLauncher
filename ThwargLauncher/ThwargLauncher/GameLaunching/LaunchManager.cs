@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Text.RegularExpressions;
+using ThwargLauncher.GameLaunching;
 
 namespace ThwargLauncher
 {
@@ -56,6 +57,27 @@ namespace ThwargLauncher
             {
                 var finder = new ThwargUtils.WindowFinder();
                 string launcherPath = GetLaunchItemLauncherLocation(_launchItem);
+                GameDatPersistContext persistCtx = null;
+                try
+                {
+                    var resolved = GameDatLaunchPreparer.Prepare(_launchItem, _launcherLocation);
+                    launcherPath = resolved.ExePath;
+                    persistCtx = resolved.PersistContext;
+                }
+                catch (GameDatUserException uex)
+                {
+                    var statusNotice = GameStatusNotice.CreateFailure(uex.Message);
+                    ReportStatus(statusNotice, _launchItem);
+                    return result;
+                }
+                catch (Exception datEx)
+                {
+                    var statusNotice = GameStatusNotice.CreateFailure(
+                        "Could not prepare game client files: " + datEx.Message);
+                    ReportStatus(statusNotice, _launchItem);
+                    Logger.WriteError("GameDatLaunchPreparer: " + datEx);
+                    return result;
+                }
                 OverridePreferenceFile(_launchItem.CustomPreferencePath);
                 gameLaunchResult = launcher.LaunchGameClient(
                     launcherPath,
@@ -70,7 +92,8 @@ namespace ThwargLauncher
                     desiredCharacter: _launchItem.CharacterSelected,
                     rodatSetting: _launchItem.RodatSetting,
                     secureSetting: _launchItem.SecureSetting,
-                    simpleLaunch: _launchItem.IsSimpleLaunch
+                    simpleLaunch: _launchItem.IsSimpleLaunch,
+                    datPersistContext: persistCtx
                     );
                 if (!gameLaunchResult.Success)
                 {

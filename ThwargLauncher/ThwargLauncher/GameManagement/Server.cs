@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -153,6 +153,7 @@ namespace ThwargLauncher
         }
         public string CustomLaunchPath => _myServer.CustomLaunchPath;
         public bool HasCustomLaunchPath => !string.IsNullOrWhiteSpace(_myServer.CustomLaunchPath);
+        public string DatCacheFolderOverride => _myServer.DatCacheFolderOverride;
         internal bool HasChosenCharacter
         {
             get

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -187,6 +187,8 @@ namespace ThwargLauncher
             launchItem.RodatSetting = server.RodatSetting;
             launchItem.SecureSetting = server.SecureSetting;
             launchItem.IsSimpleLaunch = true;
+            launchItem.ServerId = server.ServerId;
+            launchItem.DatCacheFolderOverride = string.IsNullOrWhiteSpace(server.DatCacheFolderOverride) ? null : server.DatCacheFolderOverride.Trim();
 
             if (LaunchingEvent == null) { throw new Exception("SimpleLaunchWindowViewModel.LaunchingEvent null"); }
             LaunchingEvent(launchItem);

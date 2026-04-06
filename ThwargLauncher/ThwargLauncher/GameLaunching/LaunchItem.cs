@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ThwargLauncher
 {
@@ -23,5 +23,9 @@ namespace ThwargLauncher
         public string CustomLaunchPath;
         public string CustomPreferencePath;
         public bool IsSimpleLaunch;
+        /// <summary>Stable id for per-server dat cache and shadow client folder.</summary>
+        public Guid ServerId;
+        /// <summary>Optional override for DatCache location (advanced).</summary>
+        public string DatCacheFolderOverride;
     }
 }
